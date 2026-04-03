@@ -4,6 +4,8 @@ const state = {
   restToken: "",
   endpoints: {
     pedidosPost: "/api/v1/pedidos/",
+    pedidosList: "/api/v1/pedidos/",
+    pedidoCancelarPrefix: "/api/v1/pedidos/",
     frotaStatus: "/api/v1/frota/status",
     historicoList: "/api/v1/historico",
     historicoKpis: "/api/v1/historico/kpis",
@@ -11,6 +13,7 @@ const state = {
     wsTelemetria: "/ws/telemetria",
     wsAlertas: "/ws/alertas",
     farmaciasList: "/api/v1/farmacias/",
+    dronesList: "/api/v1/drones/",
   },
   map: null,
   layers: {
@@ -34,6 +37,11 @@ const els = {
   droneList: document.getElementById("drone-list"),
   pedidoForm: document.getElementById("pedido-form"),
   farmaciaForm: document.getElementById("farmacia-form"),
+  droneForm: document.getElementById("drone-form"),
+  refreshGestaoBtn: document.getElementById("refresh-gestao-btn"),
+  dronesBody: document.getElementById("drones-body"),
+  farmaciasBody: document.getElementById("farmacias-body"),
+  pedidosBody: document.getElementById("pedidos-body"),
   historicoBody: document.getElementById("historico-body"),
   exportBtn: document.getElementById("export-report-btn"),
   kpi: {
@@ -112,11 +120,15 @@ async function discoverBackendEndpoints() {
 
     const pedidosBase = http.pedidos || "/api/v1/pedidos";
     const farmaciasBase = http.farmacias || "/api/v1/farmacias";
+    const dronesBase = http.drones || "/api/v1/drones";
     const historicoBase = http.historico || "/api/v1/historico";
     const mapaBase = deriveBasePath(http.mapa || "/api/v1/mapa/rotas", "/api/v1/mapa");
 
     state.endpoints.pedidosPost = `${pedidosBase}/`;
+    state.endpoints.pedidosList = `${pedidosBase}/`;
+    state.endpoints.pedidoCancelarPrefix = `${pedidosBase}/`;
     state.endpoints.farmaciasList = `${farmaciasBase}/`;
+    state.endpoints.dronesList = `${dronesBase}/`;
     state.endpoints.frotaStatus = http.frota || "/api/v1/frota/status";
     state.endpoints.historicoList = historicoBase;
     state.endpoints.historicoKpis = `${historicoBase}/kpis`;
@@ -421,6 +433,102 @@ async function createFarmacia(formData) {
   });
 }
 
+async function createDrone(formData) {
+  const body = {
+    id: String(formData.get("id") || "").trim(),
+    nome: String(formData.get("nome") || "").trim(),
+    capacidade_max_kg: Number(formData.get("capacidade_max_kg")),
+    autonomia_max_km: Number(formData.get("autonomia_max_km")),
+    velocidade_ms: Number(formData.get("velocidade_ms")),
+  };
+  await api(state.endpoints.dronesList, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+async function desativarFarmacia(id) {
+  await api(`${state.endpoints.farmaciasList}${id}`, {
+    method: "DELETE",
+  });
+}
+
+async function cancelarPedido(id) {
+  await api(`${state.endpoints.pedidoCancelarPrefix}${id}/cancelar`, {
+    method: "PATCH",
+  });
+}
+
+async function desativarDrone(id) {
+  await api(`${state.endpoints.dronesList}${id}/status?status=manutencao`, {
+    method: "PATCH",
+  });
+}
+
+function renderGestaoDrones(drones = []) {
+  if (!els.dronesBody) return;
+  els.dronesBody.innerHTML = "";
+  for (const d of drones) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${d.id}</td>
+      <td>${d.nome}</td>
+      <td>${d.status}</td>
+      <td><button class="danger-btn" data-action="desativar-drone" data-id="${d.id}">Desativar</button></td>
+    `;
+    els.dronesBody.appendChild(tr);
+  }
+}
+
+function renderGestaoFarmacias(farmacias = []) {
+  if (!els.farmaciasBody) return;
+  els.farmaciasBody.innerHTML = "";
+  for (const f of farmacias) {
+    const disabled = f.deposito ? "disabled" : "";
+    const label = f.deposito ? "Depósito" : "Excluir";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${f.id}</td>
+      <td>${f.nome}</td>
+      <td>${f.deposito ? "Sim" : "Não"}</td>
+      <td><button class="danger-btn" ${disabled} data-action="desativar-farmacia" data-id="${f.id}">${label}</button></td>
+    `;
+    els.farmaciasBody.appendChild(tr);
+  }
+}
+
+function renderGestaoPedidos(pedidos = []) {
+  if (!els.pedidosBody) return;
+  els.pedidosBody.innerHTML = "";
+  const visiveis = (pedidos || []).filter((p) => p.status !== "cancelado");
+  for (const p of visiveis) {
+    const disable = p.status !== "pendente" ? "disabled" : "";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.id}</td>
+      <td>${p.status}</td>
+      <td>${p.farmacia_id}</td>
+      <td><button class="danger-btn" ${disable} data-action="cancelar-pedido" data-id="${p.id}">Cancelar</button></td>
+    `;
+    els.pedidosBody.appendChild(tr);
+  }
+}
+
+async function carregarGestao() {
+  try {
+    const [drones, farmacias, pedidos] = await Promise.all([
+      api(state.endpoints.dronesList),
+      api(state.endpoints.farmaciasList),
+      api(`${state.endpoints.pedidosList}?limite=50`),
+    ]);
+    renderGestaoDrones(drones.drones || []);
+    renderGestaoFarmacias(farmacias.farmacias || []);
+    renderGestaoPedidos(pedidos.pedidos || []);
+  } catch (error) {
+    addAlert(`Falha ao carregar gestão: ${error.message}`, "warn");
+  }
+}
+
 function downloadJSON(name, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -472,16 +580,63 @@ function bindEvents() {
       try {
         await createFarmacia(new FormData(form));
         addAlert("Farmácia cadastrada com sucesso.", "ok");
+      if (form && typeof form.reset === "function") {
+        form.reset();
+      }
+      await carregarFarmacias();
+      await carregarGestao();
+      refreshAll();
+    } catch (error) {
+      addAlert(`Falha ao cadastrar farmácia: ${error.message}`, "danger");
+    }
+  });
+  }
+
+  if (els.droneForm) {
+    els.droneForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      try {
+        await createDrone(new FormData(form));
+        addAlert("Drone cadastrado com sucesso.", "ok");
         if (form && typeof form.reset === "function") {
           form.reset();
         }
-        await carregarFarmacias();
+        await carregarGestao();
         refreshAll();
       } catch (error) {
-        addAlert(`Falha ao cadastrar farmácia: ${error.message}`, "danger");
+        addAlert(`Falha ao cadastrar drone: ${error.message}`, "danger");
       }
     });
   }
+
+  if (els.refreshGestaoBtn) {
+    els.refreshGestaoBtn.addEventListener("click", carregarGestao);
+  }
+
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    if (!button) return;
+    const id = button.dataset.id;
+    const action = button.dataset.action;
+    try {
+      if (action === "desativar-farmacia") {
+        await desativarFarmacia(id);
+        addAlert(`Farmácia ${id} desativada.`, "ok");
+      } else if (action === "cancelar-pedido") {
+        await cancelarPedido(id);
+        addAlert(`Pedido ${id} cancelado.`, "ok");
+      } else if (action === "desativar-drone") {
+        await desativarDrone(id);
+        addAlert(`Drone ${id} movido para manutenção.`, "ok");
+      }
+      await carregarFarmacias();
+      await carregarGestao();
+      refreshAll();
+    } catch (error) {
+      addAlert(`Falha na ação: ${error.message}`, "danger");
+    }
+  });
 
   els.exportBtn.addEventListener("click", () => {
     const payload = state.reportCache || { generated_at: new Date().toISOString() };
@@ -495,6 +650,7 @@ async function bootstrap() {
   bindEvents();
   await discoverBackendEndpoints();
   await carregarFarmacias();
+  await carregarGestao();
   refreshAll();
   startRealtime();
   addAlert("Dashboard inicializada.", "ok");

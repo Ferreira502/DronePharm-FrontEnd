@@ -248,6 +248,16 @@ button {
   grid-column: 1 / -1;
 }
 
+.drone-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.drone-form .full {
+  grid-column: 1 / -1;
+}
+
 .check-inline {
   flex-direction: row;
   align-items: center;
@@ -261,8 +271,22 @@ button {
 }
 
 .historico-panel,
-.relatorios-panel {
+.relatorios-panel,
+.gestao-panel {
   grid-column: 1 / -1;
+}
+
+.gestao-panel h3 {
+  margin: 12px 0 8px;
+  font-size: 0.95rem;
+}
+
+.danger-btn {
+  background: #b42318;
+  border-color: #b42318;
+  color: #fff;
+  height: 30px;
+  padding: 0 10px;
 }
 
 .table-wrap {
