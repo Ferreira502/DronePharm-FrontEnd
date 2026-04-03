@@ -1,0 +1,309 @@
+:root {
+  --bg: #f2f5f7;
+  --card: #ffffff;
+  --ink: #102a43;
+  --muted: #52606d;
+  --line: #d9e2ec;
+  --accent: #0b4f7d;
+  --accent-2: #197278;
+  --danger: #b42318;
+  --warn: #b54708;
+  --ok: #157347;
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(1200px 500px at 8% 5%, #d7e6ef 0%, transparent 55%),
+    radial-gradient(900px 450px at 95% 95%, #d7ede8 0%, transparent 58%),
+    linear-gradient(180deg, #f8fbfc, #edf2f5 55%, #e9eff4);
+}
+
+.layout {
+  width: min(1500px, 94vw);
+  margin: 24px auto 36px;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font: 700 0.82rem/1 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+h1, h2 {
+  margin: 0.2rem 0 0;
+}
+
+h1 {
+  font-size: clamp(1.35rem, 2.1vw, 2rem);
+}
+
+h2 {
+  font-size: 1.1rem;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.config-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 10px;
+  width: min(860px, 100%);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+input, select, button {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  font-family: inherit;
+  font-size: 0.92rem;
+  padding: 0 10px;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary {
+  background: #e6eef4;
+  color: var(--ink);
+  border-color: #ccdde9;
+}
+
+.alerts {
+  grid-column: 1 / -1;
+}
+
+.pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font: 500 0.8rem/1 "IBM Plex Mono", monospace;
+}
+
+.pill.neutral {
+  background: #e7eef4;
+  color: #334e68;
+}
+
+.pill.ok {
+  background: #ddfbe8;
+  color: var(--ok);
+}
+
+.pill.warn {
+  background: #fff0d6;
+  color: var(--warn);
+}
+
+.alerts-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.alerts-list li {
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fbfdff;
+  font-size: 0.9rem;
+}
+
+.alert-info { border-left-color: #0ea5e9; }
+.alert-warn { border-left-color: var(--warn); }
+.alert-danger { border-left-color: var(--danger); }
+.alert-ok { border-left-color: var(--ok); }
+
+.map-panel { grid-row: span 2; }
+
+#map {
+  height: 540px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.kpi {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: #f9fbfd;
+}
+
+.kpi span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.kpi strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.28rem;
+}
+
+.drone-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+  max-height: 318px;
+  overflow: auto;
+}
+
+.drone-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  background: #fff;
+}
+
+.drone-item .title {
+  font-weight: 700;
+}
+
+.drone-item .meta {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.pedido-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pedido-form .full {
+  grid-column: 1 / -1;
+}
+
+.farmacia-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.farmacia-form .full {
+  grid-column: 1 / -1;
+}
+
+.check-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-inline input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.historico-panel,
+.relatorios-panel {
+  grid-column: 1 / -1;
+}
+
+.table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #e7edf2;
+  font-size: 0.9rem;
+}
+
+th {
+  background: #f1f6f9;
+  font-size: 0.82rem;
+  color: #334e68;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .map-panel {
+    grid-row: auto;
+  }
+
+  #map {
+    height: 420px;
+  }
+
+  .config-form {
+    grid-template-columns: 1fr;
+  }
+}
