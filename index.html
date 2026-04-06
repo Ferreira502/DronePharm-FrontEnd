@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DronePharm | Dashboard de Monitoramento e Controle</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -13,31 +14,21 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   >
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div class="page-bg"></div>
   <main class="layout">
     <header class="topbar card">
       <div>
-        <p class="eyebrow">Etapa 05 · Dashboard de Monitoramento e Controle</p>
+        <p class="eyebrow">Etapa 05 | Dashboard de Monitoramento e Controle</p>
         <h1>DronePharm Operations Center</h1>
       </div>
-      <form id="config-form" class="config-form">
-        <label>
-          API Base URL
-          <input id="api-base-url" type="url" value="http://localhost:8000">
-        </label>
-        <label>
-          WS Token (opcional)
-          <input id="ws-token" type="text" placeholder="WS_TOKEN">
-        </label>
-        <label>
-          REST Token (opcional)
-          <input id="rest-token" type="text" placeholder="REST_WRITE_TOKEN">
-        </label>
-        <button type="submit">Conectar</button>
-      </form>
+      <section class="config-panel" aria-label="Configuracao de conexao">
+        <span class="config-tag">Modo seguro</span>
+        <strong>Tokens carregados pelo servidor local</strong>
+        <span id="backend-label" class="backend-label">Carregando backend...</span>
+      </section>
     </header>
 
     <section class="alerts card">
@@ -58,7 +49,7 @@
 
     <section class="status-panel card">
       <div class="section-head">
-        <h2>Status do Drone/Frota</h2>
+        <h2>Status do Drone e da Frota</h2>
       </div>
       <div class="kpi-grid">
         <article class="kpi">
@@ -87,33 +78,33 @@
         <label>Peso (kg) <input name="peso_kg" type="number" min="0.01" step="0.01" required></label>
         <label>Prioridade
           <select name="prioridade">
-            <option value="1">1 · Urgente</option>
-            <option value="2" selected>2 · Normal</option>
-            <option value="3">3 · Reabastecimento</option>
+            <option value="1">1 | Urgente</option>
+            <option value="2" selected>2 | Normal</option>
+            <option value="3">3 | Reabastecimento</option>
           </select>
         </label>
-        <label>Farmácia ID <input name="farmacia_id" type="number" min="1" value="1" required></label>
-        <label class="full">Descrição <input name="descricao" type="text" placeholder="Ex: Insulina - UBS Centro"></label>
+        <label>Farmacia ID <input name="farmacia_id" type="number" min="1" value="1" required></label>
+        <label class="full">Descricao <input name="descricao" type="text" placeholder="Ex: Insulina - UBS Centro"></label>
         <button type="submit" class="full">Cadastrar Pedido</button>
       </form>
     </section>
 
     <section class="farmacia-panel card">
       <div class="section-head">
-        <h2>Cadastro de Farmácia</h2>
+        <h2>Cadastro de Farmacia</h2>
       </div>
       <form id="farmacia-form" class="farmacia-form">
-        <label>Nome <input name="nome" type="text" required placeholder="Ex: Farmácia Centro Sul"></label>
+        <label>Nome <input name="nome" type="text" required placeholder="Ex: Farmacia Centro Sul"></label>
         <label>Latitude <input name="latitude" type="number" step="0.000001" required value="-19.9167"></label>
         <label>Longitude <input name="longitude" type="number" step="0.000001" required value="-43.9345"></label>
         <label>UF <input name="uf" type="text" maxlength="2" required value="MG"></label>
-        <label class="full">Endereço <input name="endereco" type="text" placeholder="Rua, número, bairro"></label>
+        <label class="full">Endereco <input name="endereco" type="text" placeholder="Rua, numero, bairro"></label>
         <label>Cidade <input name="cidade" type="text" required value="Belo Horizonte"></label>
         <label class="check-inline">
           <input name="deposito" type="checkbox">
-          Definir como depósito principal
+          Definir como deposito principal
         </label>
-        <button type="submit" class="full">Cadastrar Farmácia</button>
+        <button type="submit" class="full">Cadastrar Farmacia</button>
       </form>
     </section>
 
@@ -133,23 +124,23 @@
 
     <section class="gestao-panel card">
       <div class="section-head">
-        <h2>Gestão (Excluir/Desativar)</h2>
+        <h2>Gestao (Excluir/Desativar)</h2>
         <button id="refresh-gestao-btn" class="secondary">Atualizar Listas</button>
       </div>
       <div class="table-wrap">
         <h3>Drones</h3>
         <table>
           <thead>
-            <tr><th>ID</th><th>Nome</th><th>Status</th><th>Ação</th></tr>
+            <tr><th>ID</th><th>Nome</th><th>Status</th><th>Acao</th></tr>
           </thead>
           <tbody id="drones-body"></tbody>
         </table>
       </div>
       <div class="table-wrap">
-        <h3>Farmácias</h3>
+        <h3>Farmacias</h3>
         <table>
           <thead>
-            <tr><th>ID</th><th>Nome</th><th>Depósito</th><th>Ação</th></tr>
+            <tr><th>ID</th><th>Nome</th><th>Deposito</th><th>Acao</th></tr>
           </thead>
           <tbody id="farmacias-body"></tbody>
         </table>
@@ -158,7 +149,7 @@
         <h3>Pedidos</h3>
         <table>
           <thead>
-            <tr><th>ID</th><th>Status</th><th>Farmácia</th><th>Ação</th></tr>
+            <tr><th>ID</th><th>Status</th><th>Farmacia</th><th>Acao</th></tr>
           </thead>
           <tbody id="pedidos-body"></tbody>
         </table>
@@ -167,7 +158,7 @@
 
     <section class="historico-panel card">
       <div class="section-head">
-        <h2>Histórico de Entregas</h2>
+        <h2>Historico de Entregas</h2>
       </div>
       <div class="table-wrap">
         <table>
@@ -175,9 +166,9 @@
             <tr>
               <th>Pedido</th>
               <th>Drone</th>
-              <th>Farmácia</th>
+              <th>Farmacia</th>
               <th>Tempo (min)</th>
-              <th>Distância (km)</th>
+              <th>Distancia (km)</th>
               <th>No prazo</th>
             </tr>
           </thead>
@@ -188,7 +179,7 @@
 
     <section class="relatorios-panel card">
       <div class="section-head">
-        <h2>Relatórios e KPIs</h2>
+        <h2>Relatorios e KPIs</h2>
         <button id="export-report-btn" class="secondary">Exportar JSON</button>
       </div>
       <div class="kpi-grid">
@@ -201,7 +192,7 @@
           <strong id="kpi-pontualidade">0%</strong>
         </article>
         <article class="kpi">
-          <span>Tempo Médio</span>
+          <span>Tempo Medio</span>
           <strong id="kpi-tempo-medio">0 min</strong>
         </article>
         <article class="kpi">
@@ -217,6 +208,6 @@
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-  <script src="./app.js"></script>
+  <script type="module" src="/src/app.js"></script>
 </body>
 </html>
