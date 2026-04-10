@@ -43,7 +43,7 @@ function requestHandler(request, response) {
   }
 
   if (request.url === "/backend-root") {
-    proxyHttp(request, response, `${env.backendBaseUrl}/`, env.restWriteToken);
+    proxyHttp(request, response, env.backendBaseUrl, env.restWriteToken, "/");
     return;
   }
 

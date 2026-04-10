@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DronePharm | Visao Geral</title>
+  <title>DronePharm | Farmacias</title>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,16 +16,16 @@
     <aside class="sidebar">
       <div class="brand-mark">DP</div>
       <div>
-        <p class="eyebrow">DronePharm Control</p>
-        <h1>Operations Center</h1>
+        <p class="eyebrow">Network setup</p>
+        <h1>Farmacias</h1>
       </div>
 
       <nav class="nav-menu">
-        <a class="nav-link active" href="/index.html"><strong>Visao geral</strong></a>
+        <a class="nav-link" href="/index.html"><strong>Visao geral</strong></a>
         <a class="nav-link" href="/mapa.html"><strong>Mapa interativo</strong></a>
         <a class="nav-link" href="/pedidos.html"><strong>Pedidos</strong></a>
         <a class="nav-link" href="/drones.html"><strong>Drones</strong></a>
-        <a class="nav-link" href="/farmacias.html"><strong>Farmacias</strong></a>
+        <a class="nav-link active" href="/farmacias.html"><strong>Farmacias</strong></a>
         <a class="nav-link" href="/operacoes.html"><strong>Operacoes</strong></a>
       </nav>
     </aside>
@@ -34,11 +34,11 @@
       <section class="page-header card">
         <div class="page-header-top">
           <div>
-            <p class="eyebrow">Painel principal</p>
-            <h1>Visao geral da operacao</h1>
+            <p class="eyebrow">Cobertura da rede</p>
+            <h1>Cadastro de farmacias</h1>
           </div>
           <section class="config-panel">
-            <span class="config-tag">Modo seguro</span>
+            <span class="config-tag">Network admin</span>
             <span id="backend-label" class="backend-label">Carregando backend...</span>
             <div class="status-panel">
               <span id="connection-pill" class="pill neutral">Desconectado</span>
@@ -55,35 +55,41 @@
         <ul id="alerts-list" class="alerts-list"></ul>
       </section>
 
-      <section class="grid-hero">
-        <article class="hero-banner">
-          <p class="eyebrow">Hub executivo</p>
-          <h2>Monitoramento distribuido em paginas especializadas</h2>
-        </article>
-
-        <article class="card quick-links">
-          <a class="quick-link" href="/mapa.html"><strong>Ir para o mapa</strong></a>
-          <a class="quick-link" href="/pedidos.html"><strong>Novo pedido</strong></a>
-          <a class="quick-link" href="/operacoes.html"><strong>Ver operacoes</strong></a>
-        </article>
+      <section class="card">
+        <div class="section-head">
+          <h2>Nova farmacia</h2>
+        </div>
+        <form id="farmacia-form" class="form-grid">
+          <label>Nome <input name="nome" type="text" required placeholder="Ex: Farmacia Centro Sul"></label>
+          <label>Latitude <input name="latitude" type="number" step="0.000001" required value="-19.9167"></label>
+          <label>Longitude <input name="longitude" type="number" step="0.000001" required value="-43.9345"></label>
+          <label>UF <input name="uf" type="text" maxlength="2" required value="MG"></label>
+          <label class="full">Endereco <input name="endereco" type="text" placeholder="Rua, numero, bairro"></label>
+          <label>Cidade <input name="cidade" type="text" required value="Belo Horizonte"></label>
+          <label class="check-inline">
+            <input name="deposito" type="checkbox">
+            Definir como deposito principal
+          </label>
+          <button type="submit" class="full">Cadastrar farmacia</button>
+        </form>
       </section>
 
       <section class="card">
         <div class="section-head">
-          <h2>Resumo instantaneo</h2>
+          <h2>Rede cadastrada</h2>
         </div>
-        <div class="stats-grid">
-          <article class="metric-card"><span>Drones registrados</span><strong id="overview-drones">0</strong></article>
-          <article class="metric-card"><span>Drones em voo</span><strong id="overview-em-voo">0</strong></article>
-          <article class="metric-card"><span>Farmacias ativas</span><strong id="overview-farmacias">0</strong></article>
-          <article class="metric-card"><span>Pedidos abertos</span><strong id="overview-pedidos">0</strong></article>
-          <article class="metric-card"><span>Total de entregas</span><strong id="overview-entregas">0</strong></article>
-          <article class="metric-card"><span>Pontualidade media</span><strong id="overview-pontualidade">0%</strong></article>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Nome</th><th>Cidade</th><th>Deposito</th><th>Acao</th></tr>
+            </thead>
+            <tbody id="farmacias-body"></tbody>
+          </table>
         </div>
       </section>
     </main>
   </div>
 
-  <script type="module" src="/src/pages/home.js"></script>
+  <script type="module" src="/src/pages/farmacias.js"></script>
 </body>
 </html>

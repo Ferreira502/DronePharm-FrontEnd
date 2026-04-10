@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DronePharm | Visao Geral</title>
+  <title>DronePharm | Operacoes</title>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,17 +16,17 @@
     <aside class="sidebar">
       <div class="brand-mark">DP</div>
       <div>
-        <p class="eyebrow">DronePharm Control</p>
-        <h1>Operations Center</h1>
+        <p class="eyebrow">Operations board</p>
+        <h1>Operacoes</h1>
       </div>
 
       <nav class="nav-menu">
-        <a class="nav-link active" href="/index.html"><strong>Visao geral</strong></a>
+        <a class="nav-link" href="/index.html"><strong>Visao geral</strong></a>
         <a class="nav-link" href="/mapa.html"><strong>Mapa interativo</strong></a>
         <a class="nav-link" href="/pedidos.html"><strong>Pedidos</strong></a>
         <a class="nav-link" href="/drones.html"><strong>Drones</strong></a>
         <a class="nav-link" href="/farmacias.html"><strong>Farmacias</strong></a>
-        <a class="nav-link" href="/operacoes.html"><strong>Operacoes</strong></a>
+        <a class="nav-link active" href="/operacoes.html"><strong>Operacoes</strong></a>
       </nav>
     </aside>
 
@@ -34,11 +34,11 @@
       <section class="page-header card">
         <div class="page-header-top">
           <div>
-            <p class="eyebrow">Painel principal</p>
-            <h1>Visao geral da operacao</h1>
+            <p class="eyebrow">Performance operacional</p>
+            <h1>Historico, KPI e relatorios</h1>
           </div>
           <section class="config-panel">
-            <span class="config-tag">Modo seguro</span>
+            <span class="config-tag">Analytics</span>
             <span id="backend-label" class="backend-label">Carregando backend...</span>
             <div class="status-panel">
               <span id="connection-pill" class="pill neutral">Desconectado</span>
@@ -55,35 +55,49 @@
         <ul id="alerts-list" class="alerts-list"></ul>
       </section>
 
-      <section class="grid-hero">
-        <article class="hero-banner">
-          <p class="eyebrow">Hub executivo</p>
-          <h2>Monitoramento distribuido em paginas especializadas</h2>
-        </article>
-
-        <article class="card quick-links">
-          <a class="quick-link" href="/mapa.html"><strong>Ir para o mapa</strong></a>
-          <a class="quick-link" href="/pedidos.html"><strong>Novo pedido</strong></a>
-          <a class="quick-link" href="/operacoes.html"><strong>Ver operacoes</strong></a>
-        </article>
+      <section class="card">
+        <div class="section-head">
+          <h2>Indicadores de performance</h2>
+          <button id="export-report-btn" class="secondary">Exportar JSON</button>
+        </div>
+        <div class="kpi-grid">
+          <article class="kpi"><span>Total entregas</span><strong id="kpi-entregas">0</strong></article>
+          <article class="kpi"><span>Pontualidade</span><strong id="kpi-pontualidade">0%</strong></article>
+          <article class="kpi"><span>Tempo medio</span><strong id="kpi-tempo-medio">0 min</strong></article>
+          <article class="kpi"><span>Peso entregue</span><strong id="kpi-peso-total">0 kg</strong></article>
+        </div>
       </section>
 
       <section class="card">
         <div class="section-head">
-          <h2>Resumo instantaneo</h2>
+          <h2>Historico de entregas</h2>
         </div>
-        <div class="stats-grid">
-          <article class="metric-card"><span>Drones registrados</span><strong id="overview-drones">0</strong></article>
-          <article class="metric-card"><span>Drones em voo</span><strong id="overview-em-voo">0</strong></article>
-          <article class="metric-card"><span>Farmacias ativas</span><strong id="overview-farmacias">0</strong></article>
-          <article class="metric-card"><span>Pedidos abertos</span><strong id="overview-pedidos">0</strong></article>
-          <article class="metric-card"><span>Total de entregas</span><strong id="overview-entregas">0</strong></article>
-          <article class="metric-card"><span>Pontualidade media</span><strong id="overview-pontualidade">0%</strong></article>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Pedido</th><th>Drone</th><th>Farmacia</th><th>Tempo (min)</th><th>Distancia (km)</th><th>No prazo</th></tr>
+            </thead>
+            <tbody id="historico-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Pedidos sob gestao</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Status</th><th>Farmacia</th><th>Prioridade</th><th>Acao</th></tr>
+            </thead>
+            <tbody id="operacoes-pedidos-body"></tbody>
+          </table>
         </div>
       </section>
     </main>
   </div>
 
-  <script type="module" src="/src/pages/home.js"></script>
+  <script type="module" src="/src/pages/operacoes.js"></script>
 </body>
 </html>

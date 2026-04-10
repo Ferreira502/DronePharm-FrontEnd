@@ -12,8 +12,8 @@ function buildHeaders(requestHeaders, extraHeaders) {
   return headers;
 }
 
-export function proxyHttp(request, response, targetBaseUrl, authToken) {
-  const targetUrl = new URL(request.url, targetBaseUrl);
+export function proxyHttp(request, response, targetBaseUrl, authToken, forwardedPath = request.url) {
+  const targetUrl = new URL(forwardedPath, targetBaseUrl);
   const client = pickClient(targetUrl);
 
   const proxyRequest = client.request(
@@ -26,6 +26,17 @@ export function proxyHttp(request, response, targetBaseUrl, authToken) {
       const headers = { ...proxyResponse.headers };
       delete headers["access-control-allow-origin"];
       delete headers["access-control-allow-credentials"];
+      if (headers.location) {
+        try {
+          const redirectedUrl = new URL(headers.location, targetBaseUrl);
+          const backendOrigin = new URL(targetBaseUrl).origin;
+          if (redirectedUrl.origin === backendOrigin) {
+            headers.location = `${redirectedUrl.pathname}${redirectedUrl.search}`;
+          }
+        } catch (_) {
+          // noop
+        }
+      }
 
       response.writeHead(proxyResponse.statusCode || 502, headers);
       proxyResponse.pipe(response);

@@ -34,6 +34,10 @@ export class DashboardModel {
     return index <= 0 ? fallbackBase : path.slice(0, index);
   }
 
+  static ensureTrailingSlash(path) {
+    return path.endsWith("/") ? path : `${path}/`;
+  }
+
   async discoverEndpoints() {
     try {
       const payload = await this.httpClient.request("/backend-root");
@@ -43,7 +47,7 @@ export class DashboardModel {
       const pedidosBase = http.pedidos || "/api/v1/pedidos";
       const farmaciasBase = http.farmacias || "/api/v1/farmacias";
       const dronesBase = http.drones || "/api/v1/drones";
-      const historicoBase = http.historico || "/api/v1/historico";
+      const historicoBase = DashboardModel.ensureTrailingSlash(http.historico || "/api/v1/historico/");
       const mapaBase = DashboardModel.deriveBasePath(http.mapa || "/api/v1/mapa/rotas", "/api/v1/mapa");
 
       this.endpoints = {
@@ -55,7 +59,7 @@ export class DashboardModel {
         dronesList: `${dronesBase}/`,
         frotaStatus: http.frota || "/api/v1/frota/status",
         historicoList: historicoBase,
-        historicoKpis: `${historicoBase}/kpis`,
+        historicoKpis: `${historicoBase}kpis`,
         mapaSnapshot: `${mapaBase}/snapshot`,
         wsTelemetria: DashboardModel.toPathFromAbsolute(ws.telemetria_global || "", "/ws/telemetria"),
         wsAlertas: DashboardModel.toPathFromAbsolute(ws.alertas || "", "/ws/alertas"),
@@ -71,20 +75,44 @@ export class DashboardModel {
     return this.httpClient.request(this.endpoints.farmaciasList);
   }
 
+  fetchDrones() {
+    return this.httpClient.request(this.endpoints.dronesList);
+  }
+
+  fetchPedidos(limit = 50) {
+    return this.httpClient.request(`${this.endpoints.pedidosList}?limite=${limit}`);
+  }
+
+  fetchHistorico(limit = 20) {
+    return this.httpClient.request(`${DashboardModel.ensureTrailingSlash(this.endpoints.historicoList)}?limite=${limit}`);
+  }
+
+  fetchKpis() {
+    return this.httpClient.request(this.endpoints.historicoKpis);
+  }
+
+  fetchFrotaStatus() {
+    return this.httpClient.request(this.endpoints.frotaStatus);
+  }
+
+  fetchSnapshot() {
+    return this.httpClient.request(this.endpoints.mapaSnapshot);
+  }
+
   fetchGestao() {
     return Promise.all([
-      this.httpClient.request(this.endpoints.dronesList),
-      this.httpClient.request(this.endpoints.farmaciasList),
-      this.httpClient.request(`${this.endpoints.pedidosList}?limite=50`),
+      this.fetchDrones(),
+      this.fetchFarmacias(),
+      this.fetchPedidos(50),
     ]);
   }
 
   fetchDashboard() {
     return Promise.allSettled([
-      this.httpClient.request(this.endpoints.mapaSnapshot),
-      this.httpClient.request(this.endpoints.frotaStatus),
-      this.httpClient.request(`${this.endpoints.historicoList}?limite=20`),
-      this.httpClient.request(this.endpoints.historicoKpis),
+      this.fetchSnapshot(),
+      this.fetchFrotaStatus(),
+      this.fetchHistorico(20),
+      this.fetchKpis(),
     ]);
   }
 
