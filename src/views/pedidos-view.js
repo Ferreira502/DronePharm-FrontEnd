@@ -30,14 +30,18 @@ export class PedidosView {
     this.tableBody.innerHTML = "";
 
     for (const pedido of pedidos) {
-      const canCancel = pedido.status === "pendente";
-      const canDeliver = !["entregue", "cancelado"].includes(String(pedido.status || "").toLowerCase());
+      const normalizedStatus = String(pedido.status || "").toLowerCase();
+      const canCancel = ["pendente", "calculado"].includes(normalizedStatus);
+      const canDeliver = !["entregue", "cancelado"].includes(normalizedStatus);
       this.tableBody.appendChild(
         createRow(`
           <td>${pedido.id}</td>
           <td>${pedido.status}</td>
+          <td>${pedido.drone_id || "-"}</td>
           <td>${pedido.farmacia_id}</td>
           <td>${pedido.prioridade ?? "-"}</td>
+          <td>${pedido.elapsed_label || "-"}</td>
+          <td>${pedido.eta_label || "-"}</td>
           <td>${pedido.descricao || "-"}</td>
           <td>
             <div class="action-group">

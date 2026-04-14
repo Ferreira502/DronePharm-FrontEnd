@@ -38,11 +38,12 @@ export class OperationsView {
     this.pedidosBody.innerHTML = "";
 
     for (const pedido of pedidos.filter((item) => item.status !== "cancelado")) {
-      const disabled = pedido.status !== "pendente" ? "disabled" : "";
+      const disabled = !["pendente", "calculado"].includes(String(pedido.status || "").toLowerCase()) ? "disabled" : "";
       this.pedidosBody.appendChild(
         createRow(`
           <td>${pedido.id}</td>
           <td>${pedido.status}</td>
+          <td>${pedido.drone_id || "-"}</td>
           <td>${pedido.farmacia_id}</td>
           <td>${pedido.prioridade ?? "-"}</td>
           <td><button class="danger-btn" ${disabled} data-action="cancelar-pedido" data-id="${pedido.id}">Cancelar</button></td>

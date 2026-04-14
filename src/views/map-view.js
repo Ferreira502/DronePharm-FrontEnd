@@ -25,6 +25,8 @@ function isVisiblePedidoStatus(status) {
     "aguardando coleta",
     "em_preparo",
     "em preparo",
+    "calculado",
+    "despachado",
     "em_rota",
     "em rota",
     "em_voo",
@@ -39,6 +41,10 @@ function isVisibleRouteStatus(status) {
   return [
     "planejada",
     "ativa",
+    "calculada",
+    "despachada",
+    "despachado",
+    "calculado",
     "em_rota",
     "em rota",
     "em_voo",
@@ -54,6 +60,24 @@ function isFinalizedStatus(status) {
   return ["cancelado", "entregue", "concluido", "concluído", "finalizado"].includes(normalized);
 }
 
+function interpolatePoint(latLngs, progress) {
+  if (latLngs.length <= 1) {
+    return latLngs[0] || [0, 0];
+  }
+
+  const clampedProgress = Math.max(0, Math.min(1, progress));
+  const targetSegment = clampedProgress * (latLngs.length - 1);
+  const segmentIndex = Math.min(latLngs.length - 2, Math.floor(targetSegment));
+  const localProgress = targetSegment - segmentIndex;
+  const [startLat, startLng] = latLngs[segmentIndex];
+  const [endLat, endLng] = latLngs[segmentIndex + 1];
+
+  return [
+    startLat + (endLat - startLat) * localProgress,
+    startLng + (endLng - startLng) * localProgress,
+  ];
+}
+
 export class MapView {
   constructor(elementId) {
     this.map = L.map(elementId).setView([-19.92, -43.94], 12);
@@ -67,11 +91,68 @@ export class MapView {
       pedidos: L.layerGroup().addTo(this.map),
       rotas: L.layerGroup().addTo(this.map),
       frota: L.layerGroup().addTo(this.map),
+      animacao: L.layerGroup().addTo(this.map),
     };
+    this.animationFrames = [];
   }
 
   clear() {
+    this.stopAnimations();
     Object.values(this.layers).forEach((layer) => layer.clearLayers());
+  }
+
+  stopAnimations() {
+    for (const cancel of this.animationFrames) {
+      cancel();
+    }
+
+    this.animationFrames = [];
+  }
+
+  createAnimatedRouteMarker(latLngs, color, progress) {
+    if (!latLngs.length) {
+      return;
+    }
+
+    const marker = L.marker(interpolatePoint(latLngs, progress), {
+      interactive: false,
+      icon: L.divIcon({
+        className: "route-drone-icon",
+        html: `<span class="route-drone-ping" style="--route-color:${color};"></span>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      }),
+    }).addTo(this.layers.animacao);
+
+    let direction = 1;
+    let animatedProgress = progress;
+    let previousTimestamp;
+    let frameId = 0;
+
+    const step = (timestamp) => {
+      if (!previousTimestamp) {
+        previousTimestamp = timestamp;
+      }
+
+      const delta = timestamp - previousTimestamp;
+      previousTimestamp = timestamp;
+      const speed = progress >= 0.98 ? 0.00008 : 0.00022;
+      animatedProgress += direction * delta * speed;
+
+      if (animatedProgress >= 1) {
+        animatedProgress = 1;
+        direction = -1;
+      } else if (animatedProgress <= progress) {
+        animatedProgress = progress;
+        direction = 1;
+      }
+
+      marker.setLatLng(interpolatePoint(latLngs, animatedProgress));
+      frameId = requestAnimationFrame(step);
+    };
+
+    frameId = requestAnimationFrame(step);
+    this.animationFrames.push(() => cancelAnimationFrame(frameId));
   }
 
   drawSnapshot(snapshot) {
@@ -133,16 +214,27 @@ export class MapView {
 
         const latLngs = geometry.coordinates.map(([longitude, latitude]) => [latitude, longitude]);
         latLngs.forEach((point) => bounds.push(point));
+        const routeColor = properties.cor || "#197278";
+        const routeProgress = Number(properties.route_progress ?? 0.15);
 
         L.polyline(latLngs, {
-          color: properties.cor || "#197278",
+          color: routeColor,
           weight: 4,
           opacity: 0.85,
+          dashArray: "10 8",
         })
           .bindPopup(
             `<strong>Rota #${properties.id}</strong><br>Drone: ${properties.drone_id || "-"}<br>Status: ${properties.status || "-"}`
           )
           .addTo(this.layers.rotas);
+
+        L.polyline(latLngs, {
+          color: routeColor,
+          weight: 10,
+          opacity: 0.08,
+        }).addTo(this.layers.rotas);
+
+        this.createAnimatedRouteMarker(latLngs, routeColor, routeProgress);
       }
     }
 

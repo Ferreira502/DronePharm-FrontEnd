@@ -435,7 +435,7 @@ button:disabled {
 
 table {
   width: 100%;
-  min-width: 760px;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
@@ -457,6 +457,35 @@ th {
   height: 620px;
   border-radius: 18px;
   border: 1px solid var(--line);
+}
+
+.route-drone-icon {
+  background: transparent;
+  border: none;
+}
+
+.route-drone-ping {
+  --route-color: #197278;
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.96);
+  background: var(--route-color);
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--route-color) 18%, transparent);
+  animation: route-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes route-pulse {
+  0%, 100% {
+    transform: scale(0.94);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--route-color) 26%, transparent);
+  }
+
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--route-color) 8%, transparent);
+  }
 }
 
 .drone-list {

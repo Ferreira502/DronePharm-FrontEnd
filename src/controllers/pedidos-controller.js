@@ -1,10 +1,17 @@
 import { BasePageController } from "./base-page-controller.js";
 import { notifyOrderChanged } from "../services/order-sync.js";
+import {
+  markOrderAsCancelled,
+  markOrderAsDelivered,
+  registerCreatedOrder,
+  syncOrdersWithLifecycle,
+} from "../services/order-lifecycle.js";
 
 export class PedidosController extends BasePageController {
   constructor(deps) {
     super(deps);
     this.view = deps.view;
+    this.pedidos = [];
   }
 
   async init() {
@@ -13,6 +20,7 @@ export class PedidosController extends BasePageController {
     this.bindEvents();
     await this.loadFarmacias();
     await this.loadPedidos();
+    this.startLifecycleTicker();
   }
 
   bindEvents() {
@@ -20,9 +28,11 @@ export class PedidosController extends BasePageController {
       event.preventDefault();
 
       try {
-        await this.model.createPedido(new FormData(this.view.form));
+        const createdOrder = await this.model.createPedido(new FormData(this.view.form));
+        registerCreatedOrder(createdOrder);
         this.view.resetForm();
         this.shellView.addAlert("Pedido cadastrado com sucesso.", "ok");
+        notifyOrderChanged({ id: createdOrder.id, action: "criado" });
         await this.loadPedidos();
       } catch (error) {
         this.handleError("Falha ao cadastrar pedido", error);
@@ -43,12 +53,14 @@ export class PedidosController extends BasePageController {
       try {
         if (action === "cancelar-pedido") {
           await this.model.cancelarPedido(id);
+          markOrderAsCancelled(id);
           this.shellView.addAlert(`Pedido ${id} cancelado.`, "ok");
           notifyOrderChanged({ id, action: "cancelado" });
         }
 
         if (action === "entregar-pedido") {
           await this.model.marcarPedidoEntregue(id);
+          markOrderAsDelivered(id);
           this.shellView.addAlert(`Pedido ${id} marcado como entregue.`, "ok");
           notifyOrderChanged({ id, action: "entregue" });
         }
@@ -76,6 +88,21 @@ export class PedidosController extends BasePageController {
     });
   }
 
+  startLifecycleTicker() {
+    this.lifecycleTimer = window.setInterval(() => {
+      if (!this.pedidos.length) {
+        return;
+      }
+
+      this.renderPedidos(this.pedidos);
+    }, 1000);
+  }
+
+  renderPedidos(rawPedidos) {
+    this.pedidos = rawPedidos;
+    this.view.renderPedidos(syncOrdersWithLifecycle(rawPedidos));
+  }
+
   async loadFarmacias() {
     try {
       const payload = await this.model.fetchFarmacias();
@@ -90,7 +117,7 @@ export class PedidosController extends BasePageController {
   async loadPedidos() {
     try {
       const payload = await this.model.fetchPedidos(50);
-      this.view.renderPedidos(payload.pedidos || []);
+      this.renderPedidos(payload.pedidos || []);
       this.markSynced();
     } catch (error) {
       this.handleError("Falha ao carregar pedidos", error);

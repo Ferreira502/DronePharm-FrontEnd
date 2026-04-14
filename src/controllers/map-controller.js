@@ -1,11 +1,13 @@
 import { BasePageController } from "./base-page-controller.js";
 import { subscribeOrderChanged } from "../services/order-sync.js";
+import { enhanceSnapshotWithLifecycle } from "../services/order-lifecycle.js";
 
 export class MapController extends BasePageController {
   constructor(deps) {
     super(deps);
     this.view = deps.view;
     this.mapView = deps.mapView;
+    this.lastSnapshot = null;
   }
 
   async init() {
@@ -13,6 +15,7 @@ export class MapController extends BasePageController {
     this.bindEvents();
     this.startRealtime();
     await this.refresh();
+    this.startLifecycleTicker();
   }
 
   bindEvents() {
@@ -45,6 +48,16 @@ export class MapController extends BasePageController {
     });
   }
 
+  startLifecycleTicker() {
+    this.lifecycleTimer = window.setInterval(() => {
+      if (!this.lastSnapshot) {
+        return;
+      }
+
+      this.mapView.drawSnapshot(enhanceSnapshotWithLifecycle(this.lastSnapshot));
+    }, 1000);
+  }
+
   async refresh() {
     try {
       const [snapshot, frota] = await Promise.all([
@@ -52,7 +65,8 @@ export class MapController extends BasePageController {
         this.model.fetchFrotaStatus(),
       ]);
 
-      this.mapView.drawSnapshot(snapshot);
+      this.lastSnapshot = snapshot;
+      this.mapView.drawSnapshot(enhanceSnapshotWithLifecycle(snapshot));
       this.view.renderFrotaKpis(frota.resumo || {});
       this.view.renderDroneCards(frota.drones || []);
       this.markSynced();

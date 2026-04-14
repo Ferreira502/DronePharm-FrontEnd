@@ -1,5 +1,6 @@
 import { BasePageController } from "./base-page-controller.js";
 import { notifyOrderChanged } from "../services/order-sync.js";
+import { markOrderAsCancelled, syncOrdersWithLifecycle } from "../services/order-lifecycle.js";
 
 export class OperationsController extends BasePageController {
   constructor(deps) {
@@ -44,6 +45,7 @@ export class OperationsController extends BasePageController {
 
       try {
         await this.model.cancelarPedido(button.dataset.id);
+        markOrderAsCancelled(button.dataset.id);
         this.shellView.addAlert(`Pedido ${button.dataset.id} cancelado.`, "ok");
         notifyOrderChanged({ id: button.dataset.id, action: "cancelado" });
         await this.refresh();
@@ -62,7 +64,7 @@ export class OperationsController extends BasePageController {
       ]);
 
       this.view.renderHistorico(historico.historico || []);
-      this.view.renderPedidos(pedidos.pedidos || []);
+      this.view.renderPedidos(syncOrdersWithLifecycle(pedidos.pedidos || []));
       this.view.renderKpis(kpis);
       this.markSynced();
     } catch (error) {

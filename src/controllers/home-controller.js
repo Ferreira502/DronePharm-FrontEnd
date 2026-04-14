@@ -1,4 +1,5 @@
 import { BasePageController } from "./base-page-controller.js";
+import { syncOrdersWithLifecycle } from "../services/order-lifecycle.js";
 
 export class HomeController extends BasePageController {
   constructor(deps) {
@@ -24,7 +25,7 @@ export class HomeController extends BasePageController {
       this.view.renderSummary({
         frota,
         farmacias: farmacias.farmacias || [],
-        pedidos: pedidos.pedidos || [],
+        pedidos: syncOrdersWithLifecycle(pedidos.pedidos || []),
         kpis,
       });
 
