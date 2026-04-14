@@ -8,6 +8,9 @@ export class MapController extends BasePageController {
     this.view = deps.view;
     this.mapView = deps.mapView;
     this.lastSnapshot = null;
+    this.refreshInFlight = null;
+    this.refreshQueued = false;
+    this.telemetryRefreshTimer = null;
   }
 
   async init() {
@@ -20,12 +23,12 @@ export class MapController extends BasePageController {
 
   bindEvents() {
     this.view.refreshButton.addEventListener("click", async () => {
-      await this.refresh();
+      await this.refresh({ fitBounds: true });
       this.shellView.addAlert("Mapa atualizado manualmente.", "ok");
     });
 
     this.unsubscribeOrderChanged = subscribeOrderChanged(async () => {
-      await this.refresh();
+      await this.refresh({ fitBounds: false });
       this.shellView.addAlert("Mapa sincronizado com atualizacao de pedido.", "ok");
     });
   }
@@ -43,9 +46,20 @@ export class MapController extends BasePageController {
           `Telemetria ${payload.drone_id}: bateria ${(bateria * 100).toFixed(1)}%, vento ${payload.vento_ms} m/s`,
           "info"
         );
-        await this.refresh();
+        this.scheduleTelemetryRefresh();
       },
     });
+  }
+
+  scheduleTelemetryRefresh() {
+    if (this.telemetryRefreshTimer) {
+      return;
+    }
+
+    this.telemetryRefreshTimer = window.setTimeout(async () => {
+      this.telemetryRefreshTimer = null;
+      await this.refresh({ fitBounds: false });
+    }, 1500);
   }
 
   startLifecycleTicker() {
@@ -54,11 +68,34 @@ export class MapController extends BasePageController {
         return;
       }
 
-      this.mapView.drawSnapshot(enhanceSnapshotWithLifecycle(this.lastSnapshot));
+      this.mapView.drawSnapshot(enhanceSnapshotWithLifecycle(this.lastSnapshot), {
+        fitBounds: false,
+        animateRoutes: false,
+      });
     }, 1000);
   }
 
-  async refresh() {
+  async refresh({ fitBounds = true } = {}) {
+    if (this.refreshInFlight) {
+      this.refreshQueued = true;
+      return this.refreshInFlight;
+    }
+
+    this.refreshInFlight = this.performRefresh({ fitBounds });
+
+    try {
+      await this.refreshInFlight;
+    } finally {
+      this.refreshInFlight = null;
+
+      if (this.refreshQueued) {
+        this.refreshQueued = false;
+        return this.refresh({ fitBounds: false });
+      }
+    }
+  }
+
+  async performRefresh({ fitBounds = true } = {}) {
     try {
       const [snapshot, frota] = await Promise.all([
         this.model.fetchSnapshot(),
@@ -66,7 +103,10 @@ export class MapController extends BasePageController {
       ]);
 
       this.lastSnapshot = snapshot;
-      this.mapView.drawSnapshot(enhanceSnapshotWithLifecycle(snapshot));
+      this.mapView.drawSnapshot(enhanceSnapshotWithLifecycle(snapshot), {
+        fitBounds,
+        animateRoutes: true,
+      });
       this.view.renderFrotaKpis(frota.resumo || {});
       this.view.renderDroneCards(frota.drones || []);
       this.markSynced();

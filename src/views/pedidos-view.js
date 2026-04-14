@@ -29,10 +29,15 @@ export class PedidosView {
   renderPedidos(pedidos = []) {
     this.tableBody.innerHTML = "";
 
-    for (const pedido of pedidos) {
+    const visiblePedidos = pedidos.filter((pedido) => {
+      const normalizedStatus = String(pedido.status || "").toLowerCase();
+      return !["entregue", "cancelado", "falha"].includes(normalizedStatus);
+    });
+
+    for (const pedido of visiblePedidos) {
       const normalizedStatus = String(pedido.status || "").toLowerCase();
       const canCancel = ["pendente", "calculado"].includes(normalizedStatus);
-      const canDeliver = !["entregue", "cancelado"].includes(normalizedStatus);
+      const canDeliver = !["entregue", "cancelado", "falha"].includes(normalizedStatus);
       this.tableBody.appendChild(
         createRow(`
           <td>${pedido.id}</td>

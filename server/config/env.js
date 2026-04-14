@@ -43,21 +43,33 @@ function parseEnvFile(fileContent) {
 }
 
 function loadEnv() {
-  const externalEnvFile = process.env.FRONTEND_ENV_FILE || process.env.BACKEND_ENV_FILE || "";
-  if (!externalEnvFile) {
-    return {};
+  const explicitEnvFile = process.env.FRONTEND_ENV_FILE || process.env.BACKEND_ENV_FILE || "";
+  const candidatePaths = [];
+
+  if (explicitEnvFile) {
+    candidatePaths.push(
+      path.isAbsolute(explicitEnvFile)
+        ? explicitEnvFile
+        : path.resolve(ROOT_DIR, explicitEnvFile)
+    );
   }
 
-  const envPath = path.isAbsolute(externalEnvFile)
-    ? externalEnvFile
-    : path.resolve(ROOT_DIR, externalEnvFile);
+  candidatePaths.push(
+    path.resolve(ROOT_DIR, ".env"),
+    path.resolve(ROOT_DIR, "..", "DronePharm", ".env"),
+    path.resolve(ROOT_DIR, "..", ".env")
+  );
 
-  if (!fs.existsSync(envPath)) {
-    return {};
+  for (const envPath of candidatePaths) {
+    if (!fs.existsSync(envPath)) {
+      continue;
+    }
+
+    const fileContent = fs.readFileSync(envPath, "utf8");
+    return parseEnvFile(fileContent);
   }
 
-  const fileContent = fs.readFileSync(envPath, "utf8");
-  return parseEnvFile(fileContent);
+  return {};
 }
 
 const fileEnv = loadEnv();

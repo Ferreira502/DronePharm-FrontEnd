@@ -5,6 +5,12 @@ function pickClient(targetUrl) {
   return targetUrl.protocol === "https:" ? https : http;
 }
 
+function shouldRetryWithNextToken(proxyResponse, token, authTokens) {
+  const statusCode = proxyResponse.statusCode || 0;
+  const isLastConfiguredToken = token === authTokens[authTokens.length - 1];
+  return [401, 403].includes(statusCode) && !isLastConfiguredToken && authTokens.length > 0;
+}
+
 function buildHeaders(requestHeaders, extraHeaders) {
   const headers = { ...requestHeaders, ...extraHeaders };
   delete headers.host;
@@ -74,7 +80,7 @@ export async function proxyHttp(request, response, targetBaseUrl, authToken, for
         authToken: token || "",
       });
 
-      if (proxyResponse.statusCode !== 401 || token === authTokens[authTokens.length - 1] || !authTokens.length) {
+      if (!shouldRetryWithNextToken(proxyResponse, token, authTokens)) {
         break;
       }
     } catch (error) {

@@ -94,6 +94,7 @@ export class MapView {
       animacao: L.layerGroup().addTo(this.map),
     };
     this.animationFrames = [];
+    this.hasFittedBounds = false;
   }
 
   clear() {
@@ -109,7 +110,7 @@ export class MapView {
     this.animationFrames = [];
   }
 
-  createAnimatedRouteMarker(latLngs, color, progress) {
+  createRouteMarker(latLngs, color, progress, animate = true) {
     if (!latLngs.length) {
       return;
     }
@@ -123,6 +124,10 @@ export class MapView {
         iconAnchor: [9, 9],
       }),
     }).addTo(this.layers.animacao);
+
+    if (!animate) {
+      return;
+    }
 
     let direction = 1;
     let animatedProgress = progress;
@@ -155,7 +160,8 @@ export class MapView {
     this.animationFrames.push(() => cancelAnimationFrame(frameId));
   }
 
-  drawSnapshot(snapshot) {
+  drawSnapshot(snapshot, options = {}) {
+    const { fitBounds = true, animateRoutes = true } = options;
     this.clear();
     const bounds = [];
 
@@ -234,12 +240,13 @@ export class MapView {
           opacity: 0.08,
         }).addTo(this.layers.rotas);
 
-        this.createAnimatedRouteMarker(latLngs, routeColor, routeProgress);
+        this.createRouteMarker(latLngs, routeColor, routeProgress, animateRoutes);
       }
     }
 
-    if (bounds.length) {
+    if (bounds.length && (fitBounds || !this.hasFittedBounds)) {
       this.map.fitBounds(bounds, { padding: [30, 30] });
+      this.hasFittedBounds = true;
     }
   }
 }

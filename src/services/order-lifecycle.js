@@ -1,4 +1,4 @@
-const STORAGE_KEY = "dronepharm-order-lifecycle-v1";
+const STORAGE_KEY = "dronepharm-order-lifecycle-v2";
 const STAGES = [
   { status: "pendente", offsetMs: 0, label: "Aguardando triagem" },
   { status: "calculado", offsetMs: 6000, label: "Rota calculada" },
@@ -48,11 +48,46 @@ function getOrderTime(rawOrder = {}) {
   return rawOrder.criado_em || rawOrder.horario_pedido || rawOrder.created_at || rawOrder.createdAt || null;
 }
 
+function isTerminalStatus(status) {
+  return ["entregue", "cancelado", "falha"].includes(normalizeStatus(status));
+}
+
+function shouldResetMeta(existing, rawOrder) {
+  if (!existing.createdAt) {
+    return true;
+  }
+
+  if (getOrderTime(rawOrder)) {
+    return false;
+  }
+
+  const nextStatus = normalizeStatus(rawOrder.status);
+  if (!nextStatus) {
+    return false;
+  }
+
+  if (isTerminalStatus(existing.manualStatus) && !isTerminalStatus(nextStatus)) {
+    return true;
+  }
+
+  if (existing.droneId && rawOrder.drone_id && String(existing.droneId) !== String(rawOrder.drone_id)) {
+    return true;
+  }
+
+  if (existing.routeId && (rawOrder.rota_id || rawOrder.route_id) && Number(existing.routeId) !== Number(rawOrder.rota_id || rawOrder.route_id)) {
+    return true;
+  }
+
+  return false;
+}
+
 function ensureMetaForOrder(store, rawOrder) {
   const id = String(rawOrder.id);
   const existing = store[id] || {};
-  const createdAt = existing.createdAt || getOrderTime(rawOrder) || new Date().toISOString();
-  const persistedStatus = normalizeStatus(existing.manualStatus || rawOrder.status || "pendente");
+  const sourceCreatedAt = getOrderTime(rawOrder);
+  const createdAt = sourceCreatedAt || (shouldResetMeta(existing, rawOrder) ? new Date().toISOString() : existing.createdAt);
+  const serverStatus = normalizeStatus(rawOrder.status);
+  const persistedStatus = normalizeStatus(serverStatus || existing.manualStatus || "pendente");
   const droneId = existing.droneId || rawOrder.drone_id || `DP-${String(rawOrder.id).padStart(2, "0")}`;
   const routeId = existing.routeId || rawOrder.rota_id || rawOrder.route_id || Number(rawOrder.id);
 
@@ -69,7 +104,7 @@ function ensureMetaForOrder(store, rawOrder) {
 
 function getAutomaticStatus(meta, referenceTime = nowMs()) {
   const manualStatus = normalizeStatus(meta.manualStatus);
-  if (["entregue", "cancelado", "falha"].includes(manualStatus)) {
+  if (isTerminalStatus(manualStatus)) {
     return manualStatus;
   }
 
@@ -117,7 +152,7 @@ function buildOrderView(rawOrder, meta, referenceTime = nowMs()) {
   const createdMs = Date.parse(meta.createdAt);
   const safeCreatedMs = Number.isFinite(createdMs) ? createdMs : referenceTime;
   const elapsedMs = Math.max(0, referenceTime - safeCreatedMs);
-  const terminal = ["entregue", "cancelado", "falha"].includes(status);
+  const terminal = isTerminalStatus(status);
   const stageMeta = getStageMeta(status);
   const etaMs = terminal
     ? 0
@@ -144,6 +179,13 @@ function buildOrderView(rawOrder, meta, referenceTime = nowMs()) {
 function syncOrderStore(rawOrders = []) {
   const store = readStore();
   const referenceTime = nowMs();
+  const activeIds = new Set(rawOrders.map((rawOrder) => String(rawOrder.id)));
+
+  for (const key of Object.keys(store)) {
+    if (!activeIds.has(key) && isTerminalStatus(store[key]?.manualStatus)) {
+      delete store[key];
+    }
+  }
 
   for (const rawOrder of rawOrders) {
     ensureMetaForOrder(store, rawOrder);
@@ -255,6 +297,8 @@ export function enhanceSnapshotWithLifecycle(snapshot) {
     farmacia_id: feature.properties.farmacia_id,
     rota_id: feature.properties.rota_id,
     drone_id: feature.properties.drone_id,
+    criado_em: feature.properties.criado_em,
+    created_at: feature.properties.created_at,
     latitude: feature.geometry?.coordinates?.[1],
     longitude: feature.geometry?.coordinates?.[0],
   }));
