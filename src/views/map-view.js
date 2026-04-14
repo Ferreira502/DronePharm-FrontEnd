@@ -10,6 +10,50 @@ function colorByPriority(priority) {
   return "#157347";
 }
 
+function normalizeStatus(status) {
+  return String(status || "").trim().toLowerCase();
+}
+
+function isVisiblePedidoStatus(status) {
+  const normalized = normalizeStatus(status);
+  return [
+    "pendente",
+    "novo",
+    "aberto",
+    "aguardando",
+    "aguardando_coleta",
+    "aguardando coleta",
+    "em_preparo",
+    "em preparo",
+    "em_rota",
+    "em rota",
+    "em_voo",
+    "em voo",
+    "despachado",
+    "ativo",
+  ].includes(normalized);
+}
+
+function isVisibleRouteStatus(status) {
+  const normalized = normalizeStatus(status);
+  return [
+    "planejada",
+    "ativa",
+    "em_rota",
+    "em rota",
+    "em_voo",
+    "em voo",
+    "despachada",
+    "em_andamento",
+    "em andamento",
+  ].includes(normalized);
+}
+
+function isFinalizedStatus(status) {
+  const normalized = normalizeStatus(status);
+  return ["cancelado", "entregue", "concluido", "concluído", "finalizado"].includes(normalized);
+}
+
 export class MapView {
   constructor(elementId) {
     this.map = L.map(elementId).setView([-19.92, -43.94], 12);
@@ -54,6 +98,10 @@ export class MapView {
             .bindPopup(`<strong>Deposito:</strong> ${properties.nome || properties.id}`)
             .addTo(this.layers.deposito);
         } else if (properties.tipo === "pedido") {
+          if (!isVisiblePedidoStatus(properties.status) || isFinalizedStatus(properties.status)) {
+            continue;
+          }
+
           L.circleMarker([latitude, longitude], {
             radius: 7,
             color: colorByPriority(properties.prioridade),
@@ -79,6 +127,10 @@ export class MapView {
       }
 
       if (geometry.type === "LineString") {
+        if (!isVisibleRouteStatus(properties.status) || isFinalizedStatus(properties.status)) {
+          continue;
+        }
+
         const latLngs = geometry.coordinates.map(([longitude, latitude]) => [latitude, longitude]);
         latLngs.forEach((point) => bounds.push(point));
 

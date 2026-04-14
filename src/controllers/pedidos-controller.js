@@ -1,4 +1,5 @@
 import { BasePageController } from "./base-page-controller.js";
+import { notifyOrderChanged } from "../services/order-sync.js";
 
 export class PedidosController extends BasePageController {
   constructor(deps) {
@@ -29,17 +30,48 @@ export class PedidosController extends BasePageController {
     });
 
     document.addEventListener("click", async (event) => {
-      const button = event.target.closest("button[data-action='cancelar-pedido']");
+      const button = event.target.closest("button[data-action]");
       if (!button) {
         return;
       }
 
+      const { action, id } = button.dataset;
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = "Processando...";
+
       try {
-        await this.model.cancelarPedido(button.dataset.id);
-        this.shellView.addAlert(`Pedido ${button.dataset.id} cancelado.`, "ok");
+        if (action === "cancelar-pedido") {
+          await this.model.cancelarPedido(id);
+          this.shellView.addAlert(`Pedido ${id} cancelado.`, "ok");
+          notifyOrderChanged({ id, action: "cancelado" });
+        }
+
+        if (action === "entregar-pedido") {
+          await this.model.marcarPedidoEntregue(id);
+          this.shellView.addAlert(`Pedido ${id} marcado como entregue.`, "ok");
+          notifyOrderChanged({ id, action: "entregue" });
+        }
+
         await this.loadPedidos();
       } catch (error) {
-        this.handleError("Falha ao cancelar pedido", error);
+        if (error.status === 409) {
+          const message =
+            action === "cancelar-pedido"
+              ? `Pedido ${id} nao pode ser cancelado no status atual.`
+              : `Pedido ${id} nao pode ser marcado como entregue no status atual.`;
+          this.shellView.addAlert(message, "warn");
+          await this.loadPedidos();
+        } else {
+          const prefix =
+            action === "cancelar-pedido"
+              ? "Falha ao cancelar pedido"
+              : "Falha ao marcar pedido como entregue";
+          this.handleError(prefix, error);
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
       }
     });
   }

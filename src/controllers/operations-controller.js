@@ -1,4 +1,5 @@
 import { BasePageController } from "./base-page-controller.js";
+import { notifyOrderChanged } from "../services/order-sync.js";
 
 export class OperationsController extends BasePageController {
   constructor(deps) {
@@ -44,6 +45,7 @@ export class OperationsController extends BasePageController {
       try {
         await this.model.cancelarPedido(button.dataset.id);
         this.shellView.addAlert(`Pedido ${button.dataset.id} cancelado.`, "ok");
+        notifyOrderChanged({ id: button.dataset.id, action: "cancelado" });
         await this.refresh();
       } catch (error) {
         this.handleError("Falha ao cancelar pedido", error);

@@ -73,5 +73,7 @@ export const env = {
     `http://127.0.0.1:${backendPort}`,
   wsToken: mergedEnv.WS_TOKEN || "",
   restWriteToken: mergedEnv.REST_WRITE_TOKEN || "",
+  restAdminToken: mergedEnv.REST_ADMIN_TOKEN || "",
+  restIngestToken: mergedEnv.REST_INGEST_TOKEN || "",
   refreshIntervalMs: Number(mergedEnv.FRONTEND_REFRESH_INTERVAL_MS || 20000),
 };

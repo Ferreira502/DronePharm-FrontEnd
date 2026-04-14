@@ -391,6 +391,21 @@ button {
   background: linear-gradient(135deg, #b42318, #da5e54);
 }
 
+.action-group {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  height: 32px;
+  padding: 0 12px;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .form-grid {
   display: grid;
   gap: 12px;

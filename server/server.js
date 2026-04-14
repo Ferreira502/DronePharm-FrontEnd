@@ -25,6 +25,20 @@ function handleConfig(response) {
   });
 }
 
+function resolveHttpToken(request) {
+  const method = request.method || "";
+  const candidates = [];
+  const isMutation = ["PATCH", "DELETE", "PUT", "POST"].includes(method);
+
+  if (isMutation) {
+    candidates.push(env.restAdminToken, env.restWriteToken, env.restIngestToken);
+  } else {
+    candidates.push(env.restWriteToken, env.restAdminToken, env.restIngestToken);
+  }
+
+  return [...new Set(candidates.filter(Boolean))];
+}
+
 function requestHandler(request, response) {
   if (!request.url) {
     sendText(response, 400, "Bad request");
@@ -43,12 +57,12 @@ function requestHandler(request, response) {
   }
 
   if (request.url === "/backend-root") {
-    proxyHttp(request, response, env.backendBaseUrl, env.restWriteToken, "/");
+    proxyHttp(request, response, env.backendBaseUrl, resolveHttpToken(request), "/");
     return;
   }
 
   if (request.url.startsWith("/api/")) {
-    proxyHttp(request, response, env.backendBaseUrl, env.restWriteToken);
+    proxyHttp(request, response, env.backendBaseUrl, resolveHttpToken(request));
     return;
   }
 

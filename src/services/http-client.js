@@ -19,7 +19,10 @@ export class HttpClient {
 
     const payload = await normalizeJsonResponse(response);
     if (!response.ok) {
-      throw new Error(payload.detail || `HTTP ${response.status}`);
+      const error = new Error(payload.detail || `HTTP ${response.status}`);
+      error.status = response.status;
+      error.payload = payload;
+      throw error;
     }
 
     return payload;

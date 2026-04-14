@@ -34,6 +34,8 @@ Use uma destas abordagens:
 ```powershell
 $env:BACKEND_BASE_URL="http://127.0.0.1:8000"
 $env:REST_WRITE_TOKEN="seu_token_rest"
+$env:REST_ADMIN_TOKEN="seu_token_admin"
+$env:REST_INGEST_TOKEN="seu_token_ingest"
 $env:WS_TOKEN="seu_token_ws"
 npm start
 ```
@@ -46,6 +48,15 @@ npm start
 ```
 
 Variaveis aceitas:
+
+- `BACKEND_BASE_URL`
+- `REST_WRITE_TOKEN`
+- `REST_ADMIN_TOKEN`
+- `REST_INGEST_TOKEN`
+- `WS_TOKEN`
+- `FRONTEND_HOST`
+- `FRONTEND_PORT`
+- `FRONTEND_REFRESH_INTERVAL_MS`
 
 Precedencia:
 

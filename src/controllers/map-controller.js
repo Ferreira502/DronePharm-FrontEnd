@@ -1,4 +1,5 @@
 import { BasePageController } from "./base-page-controller.js";
+import { subscribeOrderChanged } from "../services/order-sync.js";
 
 export class MapController extends BasePageController {
   constructor(deps) {
@@ -18,6 +19,11 @@ export class MapController extends BasePageController {
     this.view.refreshButton.addEventListener("click", async () => {
       await this.refresh();
       this.shellView.addAlert("Mapa atualizado manualmente.", "ok");
+    });
+
+    this.unsubscribeOrderChanged = subscribeOrderChanged(async () => {
+      await this.refresh();
+      this.shellView.addAlert("Mapa sincronizado com atualizacao de pedido.", "ok");
     });
   }
 

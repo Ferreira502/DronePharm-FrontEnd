@@ -172,6 +172,12 @@ export class DashboardModel {
     });
   }
 
+  marcarPedidoEntregue(id) {
+    return this.httpClient.request(`${this.endpoints.pedidoCancelarPrefix}${id}/entregar`, {
+      method: "PATCH",
+    });
+  }
+
   desativarDrone(id) {
     return this.httpClient.request(`${this.endpoints.dronesList}${id}/status?status=manutencao`, {
       method: "PATCH",
