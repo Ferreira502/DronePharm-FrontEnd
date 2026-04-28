@@ -3,11 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DronePharm | Visao Geral</title>
+  <title>DronePharm | Mapa Interativo</title>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  >
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -17,12 +23,12 @@
       <div class="brand-mark">DP</div>
       <div>
         <p class="eyebrow">DronePharm Control</p>
-        <h1>Operations Center</h1>
+        <h1>Mapa interativo</h1>
       </div>
 
       <nav class="nav-menu">
-        <a class="nav-link active" href="/index.html"><strong>Visao geral</strong></a>
-        <a class="nav-link" href="/mapa.html"><strong>Mapa interativo</strong></a>
+        <a class="nav-link" href="/index.html"><strong>Visao geral</strong></a>
+        <a class="nav-link active" href="/mapa.html"><strong>Mapa interativo</strong></a>
         <a class="nav-link" href="/pedidos.html"><strong>Pedidos</strong></a>
         <a class="nav-link" href="/drones.html"><strong>Drones</strong></a>
         <a class="nav-link" href="/farmacias.html"><strong>Farmacias</strong></a>
@@ -34,11 +40,11 @@
       <section class="page-header card">
         <div class="page-header-top">
           <div>
-            <p class="eyebrow">Painel principal</p>
-            <h1>Visao geral da operacao</h1>
+            <p class="eyebrow">Geointeligencia operacional</p>
+            <h1>Mapa da frota e das entregas</h1>
           </div>
           <section class="config-panel">
-            <span class="config-tag">Modo seguro</span>
+            <span class="config-tag">Streaming ativo</span>
             <span id="backend-label" class="backend-label">Carregando backend...</span>
             <div class="status-panel">
               <span id="connection-pill" class="pill neutral">Desconectado</span>
@@ -56,34 +62,42 @@
       </section>
 
       <section class="grid-hero">
-        <article class="hero-banner">
-          <p class="eyebrow">Hub executivo</p>
-          <h2>Monitoramento distribuido em paginas especializadas</h2>
+        <article class="card">
+          <div class="section-head">
+            <h2>Mapa interativo</h2>
+            <button id="refresh-map-btn" class="secondary">Atualizar agora</button>
+          </div>
+          <div id="map"></div>
         </article>
 
-        <article class="card quick-links">
-          <a class="quick-link" href="/mapa.html"><strong>Ir para o mapa</strong></a>
-          <a class="quick-link" href="/pedidos.html"><strong>Novo pedido</strong></a>
-          <a class="quick-link" href="/operacoes.html"><strong>Ver operacoes</strong></a>
-        </article>
-      </section>
+        <div class="info-stack">
+          <article class="card">
+            <div class="section-head">
+              <h2>Status da frota</h2>
+            </div>
+            <div class="kpi-grid">
+              <article class="kpi"><span>Total</span><strong id="kpi-total-drones">0</strong></article>
+              <article class="kpi"><span>Em voo</span><strong id="kpi-em-voo">0</strong></article>
+              <article class="kpi"><span>Alerta de bateria</span><strong id="kpi-alerta-bateria">0</strong></article>
+            </div>
+          </article>
 
-      <section class="card">
-        <div class="section-head">
-          <h2>Resumo instantaneo</h2>
-        </div>
-        <div class="stats-grid">
-          <article class="metric-card"><span>Drones registrados</span><strong id="overview-drones">0</strong></article>
-          <article class="metric-card"><span>Drones em voo</span><strong id="overview-em-voo">0</strong></article>
-          <article class="metric-card"><span>Farmacias ativas</span><strong id="overview-farmacias">0</strong></article>
-          <article class="metric-card"><span>Pedidos abertos</span><strong id="overview-pedidos">0</strong></article>
-          <article class="metric-card"><span>Total de entregas</span><strong id="overview-entregas">0</strong></article>
-          <article class="metric-card"><span>Pontualidade media</span><strong id="overview-pontualidade">0%</strong></article>
+          <article class="card">
+            <div class="section-head">
+              <h2>Drones em observacao</h2>
+            </div>
+            <div id="drone-list" class="drone-list"></div>
+          </article>
         </div>
       </section>
     </main>
   </div>
 
-  <script type="module" src="/src/pages/home.js"></script>
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script type="module" src="/src/pages/mapa.js"></script>
 </body>
 </html>
